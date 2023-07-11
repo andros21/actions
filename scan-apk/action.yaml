@@ -64,10 +64,12 @@ runs:
       run: |
         cat ${{ steps.mkconfig.outputs.config-file }}
 
-    - uses: ./apko-publish
+    - uses: ./apko-snapshot
       with:
         config: ${{ steps.mkconfig.outputs.config-file }}
-        tag: localhost:1234/apk-scan
+        base-tag: localhost:1234/apk-scan
+        sbom-attest: true
+        slsa-attest: true
 
     - id: grype-scan
       uses: anchore/scan-action@ecfd0e98932e57ea8f68f29c4f418fc41a8194db
