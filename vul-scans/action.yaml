@@ -252,8 +252,7 @@ runs:
       # - https://github.com/anchore/grype/issues/1102
       # - https://github.com/anchore/grype/pull/1104
       # - https://github.com/anchore/scan-action/pull/212
-      # uses: anchore/scan-action@ecfd0e98932e57ea8f68f29c4f418fc41a8194db
-      uses: jdolitsky/scan-action@aa58532757c43a60a2e2e0f2268065fdb50ee244 # The "fix-install" branch
+      uses: anchore/scan-action@abae793926ec39a78ab18002bc7fc45bbbd94342 # v6.0.0
       with:
         image: ${{ inputs.image }}
         fail-build: false
@@ -297,7 +296,7 @@ runs:
         export COSIGN_EXPERIMENTAL="$COSIGN_EXPERIMENTAL"
 
         cosign attest --fulcio-url ${{ inputs.FULCIO_URL }}  --rekor-url ${{ inputs.REKOR_URL }} \
-        --type vuln --predicate "${ATTESTATION}" ${{ inputs.image }} 
+        --type vuln --predicate "${ATTESTATION}" ${{ inputs.image }}
 
 
     - name: High Level Scan report
@@ -334,9 +333,9 @@ runs:
         cat > vulnz.cue <<EOF
           predicateType: "cosign.sigstore.dev/attestation/vuln/v1"
         EOF
-        
+
         export COSIGN_EXPERIMENTAL="$COSIGN_EXPERIMENTAL"
-        
+
         cosign verify-attestation --rekor-url ${{ inputs.REKOR_URL }} \
           --type vuln --policy vulnz.cue ${{ inputs.image }} || \
           echo "WARNING: Could not verify attestation (is this a private image?)"
