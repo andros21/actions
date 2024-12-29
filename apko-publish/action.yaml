@@ -18,6 +18,12 @@ inputs:
       The config file to use for building the image.
     default: .apko.yaml
 
+  lockfile:
+    description: |
+      The lock file that constraints versions of packages.
+    required: false
+    default: ''
+
   tag:
     description: |
       The tag to use for publishing the image.
@@ -29,6 +35,8 @@ inputs:
     default: ${{ github.repository_owner }}
 
   repository:
+    description: |
+      The repository name.
     default: ${{ github.repository }}
 
   token:
@@ -114,6 +122,12 @@ inputs:
     required: false
     default: ''
 
+  annotations:
+    description: |
+      Annotations to add to the image. Format: key1:value1,key2:value2.
+    required: false
+    default: ''
+
 outputs:
   digest:
     value: ${{ steps.docker-run.outputs.digest }}
@@ -159,6 +173,7 @@ runs:
       [ -n "${{ inputs.repository-append }}" ] && repos="-r ${{ inputs.repository-append }}"
       [ -n "${{ inputs.package-append }}" ] && packages="-p ${{ inputs.package-append }}"
       [ -n  "${{ inputs.archs }}" ] && archs="--arch ${{ inputs.archs }}"
+      [ -n  "${{ inputs.annotations }}" ] && annotations="--annotations ${{ inputs.annotations }}"
       build_options=""
       if [ -n "${{ inputs.build-options }}" ]; then
         opts="${{ inputs.build-options }}"
@@ -169,12 +184,14 @@ runs:
 
       sbomPath="--sbom-path=${{ inputs.sbom-path }}"
 
-      export DIGEST_FILE=$(mktemp)
+      export DIGEST_FILE="/tmp/digest"
       /usr/bin/apko publish \
         --vcs=${{ inputs.vcs-url }} \
+        --lockfile=${{ inputs.lockfile }} \
         ${{ inputs.debug && '--log-level debug' }} \
-        --image-refs="${{ inputs.image_refs }}" ${{ inputs.config }} ${{ inputs.tag }} $keys $repos $packages $archs $build_options $sbomPath | tee ${DIGEST_FILE}
+        --image-refs="${{ inputs.image_refs }}" ${{ inputs.config }} ${{ inputs.tag }} $keys $repos $packages $archs $annotations $build_options $sbomPath | tee ${DIGEST_FILE}
       echo EXIT CODE: $?
-      echo ::set-output name=digest::$(cat ${DIGEST_FILE})
       EOF
       )"
+
+      echo "digest=$(cat /tmp/digest)" >> $GITHUB_OUTPUT
